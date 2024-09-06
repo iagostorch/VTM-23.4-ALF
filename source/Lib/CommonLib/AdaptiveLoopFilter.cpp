@@ -1028,6 +1028,8 @@ void AdaptiveLoopFilter::deriveClassificationBlk(AlfClassifier **classifier, int
       {
         classIdx += ( ( ( mainDirection & 0x1 ) << 1 ) + directionStrength ) * 5;
       }
+      
+      printf("Bloco 4x4 Classe (YX),%dx%d,%d\n", posY+i, posY+j, ( ( mainDirection & 0x1 ) << 1 ) + directionStrength );
 
       static const int transposeTable[8] = { 0, 1, 0, 2, 2, 3, 1, 3 };
       int transposeIdx = transposeTable[mainDirection * 2 + ( secondaryDirection >> 1 )];

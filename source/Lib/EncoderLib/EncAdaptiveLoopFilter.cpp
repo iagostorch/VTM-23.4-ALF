@@ -38,10 +38,58 @@
 
 #include "CommonLib/Picture.h"
 #include "CommonLib/CodingStructure.h"
+#include "string.h"
+#include <fstream>
 
 #define AlfCtx(c) SubCtx( Ctx::Alf, c)
 
 #include <algorithm>
+
+
+
+// Export the samples of a frame into a CSV file
+void exportSamplesFrame(PelUnitBuf recYuv, int POC, int postExt){
+    int h,w;
+        
+    
+    std::ofstream fileHandler;
+
+    std::string name;
+    if(postExt == 0)
+      name = "recYuv_preExt_ " +  std::to_string(POC);
+    else 
+      name = "recYuv_postExt_ " +  std::to_string(POC);
+
+    fileHandler.open(name + ".csv");
+
+    
+    
+  for(int i=0; i<recYuv.get( COMPONENT_Y ).height; i++){
+    for(int j=0; j<recYuv.get( COMPONENT_Y ).width; j++){
+      std::cout << recYuv.get( COMPONENT_Y ).buf[i*recYuv.get( COMPONENT_Y ).stride + j] << ",";
+    }
+    printf("\n");
+  }
+  printf("\n");
+    
+    
+    
+    
+    int frameWidth = recYuv.get( COMPONENT_Y ).width;
+    int frameHeight = recYuv.get( COMPONENT_Y ).height;
+
+    for (h=0; h<frameHeight; h++){
+        for(w=0; w<frameWidth-1; w++){
+            fileHandler << recYuv.get( COMPONENT_Y ).buf[h*recYuv.get( COMPONENT_Y ).stride + w] << ",";
+        }
+        fileHandler << recYuv.get( COMPONENT_Y ).buf[h*recYuv.get( COMPONENT_Y ).stride + w];
+        fileHandler << std::endl;
+    }
+    fileHandler.close();
+    
+}
+
+
 
 #if MAX_NUM_CC_ALF_FILTERS>1
 struct FilterIdxCount
@@ -877,6 +925,8 @@ void EncAdaptiveLoopFilter::ALFProcess(CodingStructure& cs, const double *lambda
                                        , Picture* pcPic, uint32_t numSliceSegments
                                       )
 {
+  
+  printf("[!] Chamou ALFProcess Encoder\n");
   // IRAP AU is assumed
   if( ( cs.slice->getPendingRasInit() || cs.slice->isIDRorBLA() || ( cs.slice->getNalUnitType() == NAL_UNIT_CODED_SLICE_CRA && m_encCfg->getCraAPSreset() ) ) )
   {
@@ -925,8 +975,37 @@ void EncAdaptiveLoopFilter::ALFProcess(CodingStructure& cs, const double *lambda
 
   m_tempBuf.copyFrom( cs.getRecoBuf() );
   PelUnitBuf recYuv = m_tempBuf.getBuf( cs.area );
+  
+  
+  
+  
+//  printf("[!] recYuv .buf[] ANTES de extendBorderPel()\n");
+  
+  exportSamplesFrame(recYuv, cs.picture->poc, 0);
+  
+  
+//  for(int i=0; i<recYuv.get( COMPONENT_Y ).height; i++){
+//    for(int j=0; j<recYuv.get( COMPONENT_Y ).width; j++){
+//      std::cout << recYuv.get( COMPONENT_Y ).buf[i*recYuv.get( COMPONENT_Y ).stride + j] << ",";
+//    }
+//    printf("\n");
+//  }
+//  printf("\n");
+   
   recYuv.extendBorderPel( MAX_ALF_FILTER_LENGTH >> 1 );
-
+ 
+//  printf("[!] recYuv .at() DEPOIS de extendBorderPel()\n");
+//  for(int i=0; i<recYuv.get( COMPONENT_Y ).height; i++){
+//    for(int j=0; j<recYuv.get( COMPONENT_Y ).width; j++){
+//      std::cout << recYuv.get( COMPONENT_Y ).at(j,i) << ",";
+//    }
+//    printf("\n");
+//  }
+//  printf("\n");
+  
+  exportSamplesFrame(recYuv, cs.picture->poc, 1);
+   
+  
   // derive classification
   const CPelBuf& recLuma = recYuv.get( COMPONENT_Y );
   const PreCalcValues& pcv = *cs.pcv;

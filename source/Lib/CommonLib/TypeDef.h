@@ -52,6 +52,10 @@
 #include <cassert>
 #include "CommonDef.h"
 
+
+
+#define VITORIA_SIMD_ENABLE 0
+
 // clang-format off
 
 

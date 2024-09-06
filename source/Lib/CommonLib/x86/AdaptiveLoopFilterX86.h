@@ -1704,9 +1704,11 @@ void AdaptiveLoopFilter::_initAdaptiveLoopFilterX86()
     m_filter7x7Blk = simdFilter7x7Blk_HBD;
   }
 #else
-  m_deriveClassificationBlk = simdDeriveClassificationBlk<vext>;
-  m_filter5x5Blk = simdFilter5x5Blk<vext>;
-  m_filter7x7Blk = simdFilter7x7Blk<vext>;
+    #if VITORIA_SIMD_ENABLE
+        m_deriveClassificationBlk = simdDeriveClassificationBlk<vext>;
+        m_filter5x5Blk = simdFilter5x5Blk<vext>;
+        m_filter7x7Blk = simdFilter7x7Blk<vext>;
+    #endif
 #endif
 }
 
